@@ -13,18 +13,34 @@ app.use(bodyParser.json());
 
 // GET para verificación del webhook de Meta
 app.get("/", (req, res) => {
+import express from "express";
+import bodyParser from "body-parser";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const VERIFY_TOKEN = "gptbot123"; // Debe coincidir con el que colocaste en Meta
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+
+app.use(bodyParser.json());
+
+// ✅ GET para verificación del Webhook de Meta
+app.get("/", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("✅ Webhook verificado correctamente");
     return res.status(200).send(challenge);
   } else {
     return res.status(403).send("Verificación fallida");
   }
 });
 
-// POST para recibir mensajes
+// ✅ POST para recibir mensajes y responder con GPT
 app.post("/", async (req, res) => {
   const message = req.body.entry?.[0]?.messaging?.[0]?.message?.text || "No se detectó mensaje";
   const senderId = req.body.entry?.[0]?.messaging?.[0]?.sender?.id;
@@ -58,4 +74,6 @@ app.post("/", async (req, res) => {
   res.sendStatus(200);
 });
 
+// 🟢 Inicia servidor (para entorno local, aunque Vercel lo gestiona automáticamente)
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+
